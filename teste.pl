@@ -6,6 +6,7 @@ use wxPerl::Constructors;
 use Wx qw( wxWidth wxHeight);
 use threads('yield', 'stack_size'=>64*4096, 'exit'=> 'threads_only', 'stringify');
 use threads::shared;
+
 #use Wx::Image;
 #use Wx::Perl::Imagick;
 #use GD::Image;
@@ -228,6 +229,11 @@ sub Update {
 	elsif($state ne 'dead' and $luz eq 'ACESA'){
             $state = $lastState;
 	}
+	elsif($state eq 'dead'){
+		$health = 0;
+		$hunger = 0;
+		$happy = 0;
+	}
 }
 
 sub OnInit {
@@ -364,63 +370,92 @@ sub OnInit {
                                   [190, 360],       # position
                                   [-1, -1],       # default size
                                   );
+                                  
+       my $exit = Wx::Button->new( $frame,        # parent window
+                                  -1,             # ID
+                                  'SAIR',      # label
+                                  [140, 390],       # position
+                                  [-1, -1],       # default size
+                                  );
+       
        
        Wx::Event::EVT_BUTTON($jogar, -1, sub {
-                lock$happy;
-                $happy = $happy + 2;
-                lock$hunger;
-                $hunger = $hunger - 2;
-                $tired = $tired + 2;
+                if($state ne 'dead'){
+			if($happy < 100 ){
+				lock$happy;
+				$happy = $happy + 2;
+			}
+			if($hunger < 100){
+				lock$hunger;
+				$hunger = $hunger - 2;
+			}
+                
+			$tired = $tired + 2;
+			
+                }
+                Update();
                 $text_happy_value->SetLabel("| $happy |");
-                $text_hunger_value->SetLabel("| $hunger |");
+		$text_hunger_value->SetLabel("| $hunger |");
                 });
                 
       Wx::Event::EVT_BUTTON($curar, -1, sub {
-                lock$health;
-                $health = $health + 2;
+                if($health < 100 and $state ne 'dead'){
+			lock$health;
+			$health = $health + 2;
+		}
+		Update();
                 $text_health_value->SetLabel("| $health |");
                 });
                 
        Wx::Event::EVT_BUTTON($comer, -1, sub {
-                lock$hunger;
-                $hunger = $hunger + 2;
+		if($hunger < 100 and $state ne 'dead'){
+			lock$hunger;
+			$hunger = $hunger + 2;
+		}
+		Update();
                 $text_hunger_value->SetLabel("| $hunger |");
                 });
                 
        Wx::Event::EVT_BUTTON($limpar, -1, sub {
-                lock$dirty;
-                $dirty = 0;
-                Update();
-                $text_state_value->SetLabel("| $state |"); 
+                if($state ne 'dead'){
+			lock$dirty;
+			$dirty = 0;
+			Update();
+			$text_state_value->SetLabel("| $state |"); 
+                }
                 });
                 
        Wx::Event::EVT_BUTTON($reset, -1, sub {
-                Restart(); 
+               Restart(); 
                $text_luz_value->SetLabel("$luz");
                $dormir->SetLabel("$btnSleep");
                $text_happy_value->SetLabel("| $happy |");
                $text_hunger_value->SetLabel("| $hunger |");
                $text_health_value->SetLabel("| $health |");
                $text_state_value->SetLabel("| $state |");
+               
                 });
                 
        Wx::Event::EVT_BUTTON($dormir, -1, sub {
-                if($luz eq 'ACESA'){
-                     $luz = 'APAGADA';
-                     $btnSleep = 'ACORDAR';
-                     $lastState = $state;
-                     $state = 'sleeping';
+                if($state ne 'dead'){
+			if($luz eq 'ACESA'){
+				$luz = 'APAGADA';
+				$btnSleep = 'ACORDAR';
+				$lastState = $state;
+				$state = 'sleeping';
+			}
+			else{
+				$luz = 'ACESA';
+				$btnSleep = 'DORMIR';
+			}
+			Update();
+			$text_luz_value->SetLabel("$luz");
+			$dormir->SetLabel("$btnSleep");
+			$text_state_value->SetLabel("| $state |"); 
                 }
-                else{
-                     $luz = 'ACESA';
-                     $btnSleep = 'DORMIR';
-                }
-                Update();
-                $text_luz_value->SetLabel("$luz");
-                $dormir->SetLabel("$btnSleep");
-                $text_state_value->SetLabel("| $state |"); 
                 });
                 
+       
        my $tr_listener = threads->create(sub{
             while(1){
                sleep 2;
@@ -435,7 +470,11 @@ sub OnInit {
             }
        });
        
-       
+       Wx::Event::EVT_BUTTON($exit, -1, sub {
+                $frame->Destroy();
+                
+                });
+                
        
        
        $frame->SetSizer($sizer);
