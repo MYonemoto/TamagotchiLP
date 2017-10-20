@@ -6,14 +6,7 @@ use wxPerl::Constructors;
 use Wx qw( wxWidth wxHeight);
 use threads('yield', 'stack_size'=>64*4096, 'exit'=> 'threads_only', 'stringify');
 use threads::shared;
-
-#use Wx::Image;
-#use Wx::Perl::Imagick;
-#use GD::Image;
-use IO::File;
-use GD::Image;
-
-
+use Audio::Beep;
 
 package MyApp;
   
@@ -45,8 +38,31 @@ $luz = 'ACESA';
 my $state :shared; 
 $state = 'normal';
 
-my $normal = "
+my $normal :shared;
+$normal = "
      (o)--(o)
+    /.____.\\
+    \\_____/
+   ./          \\.
+( .              . )
+  \\ \\_\\\\//_/ /
+ ~~  ~~  ~~  
+ ";
+
+my $sleep :shared;
+$sleep = "
+     (-)--(-)
+    /.____.\\
+    \\_____/
+   ./          \\.
+( .              . )
+  \\ \\_\\\\//_/ /
+ ~~  ~~  ~~ 
+ ";
+
+my $dead :shared; 
+$dead = "
+     (x)--(x)
     /.____.\\
     \\_____/
    ./          \\.
@@ -325,15 +341,7 @@ sub OnInit {
                                   [100, 300],       # position
                                   [-1, -1],       # default size
                                   );
-                                  
-  
-       #my $button = wxPerl::Button->new($frame, 'Click Me'); 
-       #$sizer->Add($button, 0.5, 5, &Wx::wxEXPAND);
-       #my $button2 = wxPerl::Button->new($frame, 'DO NOT CLICK');
-       #$sizer->Add($button2, 0.5, 5, &Wx::wxEXPAND);
-       
-       
-       
+           
        my $limpar = Wx::Button->new( $frame,        # parent window
                                   -1,             # ID
                                   'LIMPAR',      # label
@@ -347,8 +355,6 @@ sub OnInit {
                                   [100, 360],       # position
                                   [-1, -1],       # default size
                                   );
-       
-       
        
        my $curar = Wx::Button->new( $frame,        # parent window
                                   -1,             # ID
@@ -396,7 +402,7 @@ sub OnInit {
                 Update();
                 $text_happy_value->SetLabel("| $happy |");
 		$text_hunger_value->SetLabel("| $hunger |");
-                });
+      });
                 
       Wx::Event::EVT_BUTTON($curar, -1, sub {
                 if($health < 100 and $state ne 'dead'){
@@ -405,7 +411,7 @@ sub OnInit {
 		}
 		Update();
                 $text_health_value->SetLabel("| $health |");
-                });
+       });
                 
        Wx::Event::EVT_BUTTON($comer, -1, sub {
 		if($hunger < 100 and $state ne 'dead'){
@@ -414,7 +420,7 @@ sub OnInit {
 		}
 		Update();
                 $text_hunger_value->SetLabel("| $hunger |");
-                });
+       });
                 
        Wx::Event::EVT_BUTTON($limpar, -1, sub {
                 if($state ne 'dead'){
@@ -423,7 +429,7 @@ sub OnInit {
 			Update();
 			$text_state_value->SetLabel("| $state |"); 
                 }
-                });
+       });
                 
        Wx::Event::EVT_BUTTON($reset, -1, sub {
                Restart(); 
@@ -434,7 +440,7 @@ sub OnInit {
                $text_health_value->SetLabel("| $health |");
                $text_state_value->SetLabel("| $state |");
                
-                });
+       });
                 
        Wx::Event::EVT_BUTTON($dormir, -1, sub {
                 if($state ne 'dead'){
@@ -453,9 +459,13 @@ sub OnInit {
 			$dormir->SetLabel("$btnSleep");
 			$text_state_value->SetLabel("| $state |"); 
                 }
-                });
-                
+       });
        
+       Wx::Event::EVT_BUTTON($exit, -1, sub {
+                $frame->Destroy();
+                
+       });
+                    
        my $tr_listener = threads->create(sub{
             while(1){
                sleep 2;
@@ -467,20 +477,23 @@ sub OnInit {
                $text_hunger_value->SetLabel("| $hunger |");
                $text_health_value->SetLabel("| $health |");
                $text_state_value->SetLabel("| $state |");
+               
+               
             }
        });
        
-       Wx::Event::EVT_BUTTON($exit, -1, sub {
-                $frame->Destroy();
-                
-                });
-                
-       
-       
+       my $tr_audio = threads->create(sub{
+	   while(1){
+	       my $beeper = Audio::Beep->new();
+	       my $music = "g' f bes' c8 f d4 c8 f d4 bes c g f2 g' f bes' c8 f d4 c8 f d4 bes c g f2 g' f bes' c8 f d4 c8 f d4 bes c g f2";
+	       $beeper->play( $music );
+	   }
+       	
+       	
+       	});
+             
        $frame->SetSizer($sizer);
        $frame->Show;
-       #$frame->Freeze();
-       #$frame->DestroyChildren();
        
 }
  
