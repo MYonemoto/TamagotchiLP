@@ -254,7 +254,7 @@ sub Update {
 
 sub OnInit {
         my $self = shift;
-        my $frame = wxPerl::Frame->new(undef, 'A wxPerl Application');
+        my $frame = wxPerl::Frame->new(undef, 'TAMAGOTCHI');
         $frame->SetMinSize([120,40]);
         my $sizer = Wx::BoxSizer->new(&Wx::wxVERTICAL);
         
@@ -386,22 +386,131 @@ sub OnInit {
        
        
        Wx::Event::EVT_BUTTON($jogar, -1, sub {
-                if($state ne 'dead'){
-			if($happy < 100 ){
-				lock$happy;
-				$happy = $happy + 2;
-			}
-			if($hunger < 100){
-				lock$hunger;
-				$hunger = $hunger - 2;
-			}
-                
-			$tired = $tired + 2;
-			
-                }
-                Update();
-                $text_happy_value->SetLabel("| $happy |");
-		$text_hunger_value->SetLabel("| $hunger |");
+                 my $self1 = shift;
+		my $frame1 = wxPerl::Frame->new($frame, 'QUIZ GAME');
+		$frame1->SetMinSize([120,40]);
+		my $sizer1 = Wx::BoxSizer->new(&Wx::wxVERTICAL);
+		$frame1->Show;
+		
+		my $op1 = Wx::Button->new( $frame1,        # parent window
+                                  -1,             # ID
+                                  "6",      # label
+                                  [100, 200],       # position
+                                  [-1, -1],       # default size
+                                  );
+                                  
+               my $op2 = Wx::Button->new( $frame1,        # parent window
+                                  -1,             # ID
+                                  "2",      # label
+                                  [100, 250],       # position
+                                  [-1, -1],       # default size
+                                  );
+                                  
+              my $op3 = Wx::Button->new( $frame1,        # parent window
+                                  -1,             # ID
+                                  "4",      # label
+                                  [200, 200],       # position
+                                  [-1, -1],       # default size
+                                  );
+                                  
+              my $op4 = Wx::Button->new( $frame1,        # parent window
+                                  -1,             # ID
+                                  "8",      # label
+                                  [200, 250],       # position
+                                  [-1, -1],       # default size
+                                  );
+                                  
+             my $text_q = Wx::StaticText->new(
+             $frame1,             # parent window
+             -1,                 # Let the system assign a window ID
+             "QUANTAS PATAS TEM UM CACHORRO?",    # The literal text to display
+             [100, 100],           # [x, y] coordinates of the control
+             );
+             
+             Wx::Event::EVT_BUTTON($op3, -1, sub {
+                $text_q->SetLabel("QUANTAS PERNAS TEM UM SER HUMANO?");
+                Wx::Event::EVT_BUTTON($op1, -1, sub {
+				 $frame1->Destroy();
+		});
+			    
+		Wx::Event::EVT_BUTTON($op3, -1, sub {
+				$frame1->Destroy();
+		});
+			    
+		Wx::Event::EVT_BUTTON($op4, -1, sub {
+				$frame1->Destroy();
+		});
+                Wx::Event::EVT_BUTTON($op2, -1, sub {
+			  $text_q->SetLabel("QUANTAS PATAS TEM UMA FORMIGA?");
+			  Wx::Event::EVT_BUTTON($op2, -1, sub {
+				 $frame1->Destroy();
+			  });
+			    
+			  Wx::Event::EVT_BUTTON($op3, -1, sub {
+				$frame1->Destroy();
+			  });
+			    
+			  Wx::Event::EVT_BUTTON($op4, -1, sub {
+				$frame1->Destroy();
+			  });
+			  Wx::Event::EVT_BUTTON($op1, -1, sub {
+				  $text_q->SetLabel("QUANTAS PATAS TEM UMA ARANHA?");
+				  Wx::Event::EVT_BUTTON($op1, -1, sub {
+					 $frame1->Destroy();
+				  });
+				    
+				  Wx::Event::EVT_BUTTON($op2, -1, sub {
+					$frame1->Destroy();
+				  });
+				    
+				  Wx::Event::EVT_BUTTON($op3, -1, sub {
+					$frame1->Destroy();
+				  });
+				  Wx::Event::EVT_BUTTON($op4, -1, sub {
+					$text_q->SetLabel("QUANTAS PATAS TEM UMA ARANHA?");
+						$op1->Hide;
+						$op2->Hide;
+						$op3->Hide;
+						$op4->Hide;
+						$text_q->Hide;
+						
+						$happy = 100;
+						
+						my $text_win = Wx::StaticText->new(
+						$frame1,
+						-1,
+						"YOU WIN!!",
+						[150,150],
+						);
+						
+						my $exit_game = Wx::Button->new( $frame1,        # parent window
+								  -1,             # ID
+								  'VOLTAR',      # label
+								  [200, 250],       # position
+								  [-1, -1],       # default size
+								  );
+						Wx::Event::EVT_BUTTON($exit_game, -1, sub {
+							$frame1->Destroy();
+						}); 
+					
+				});
+			});
+		});
+		
+      
+		
+            });
+            Wx::Event::EVT_BUTTON($op2, -1, sub {
+                 $frame1->Destroy();
+	    });
+	    
+	    Wx::Event::EVT_BUTTON($op1, -1, sub {
+                $frame1->Destroy();
+	    });
+	    
+	    Wx::Event::EVT_BUTTON($op4, -1, sub {
+	    	$frame1->Destroy();
+	    });
       });
                 
       Wx::Event::EVT_BUTTON($curar, -1, sub {
