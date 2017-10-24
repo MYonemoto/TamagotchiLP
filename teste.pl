@@ -71,6 +71,10 @@ $dead = "
  ~~  ~~  ~~  
  ";
 
+my $emoji : shared;
+$emoji = $normal;
+my $emoji_aux : shared;
+
 sub Restart {
    $state = 'normal';
    $happy = 100;
@@ -84,6 +88,14 @@ sub Restart {
 
 sub UpdateTime {
    if ($state eq 'normal') {
+	$happy = $happy - 1;
+	$hunger = $hunger - 1;
+	$health = $health - 1;
+	$tired++;
+	$dirty++;
+	
+   }
+   if ($state eq 'dirty') {
 	$happy = $happy - 1;
 	$hunger = $hunger - 1;
 	$health = $health - 1;
@@ -138,6 +150,7 @@ sub Update {
       if($state ne 'dead' and $state ne 'sleeping'){
 		if($hunger <= 0 or $happy <= 0 or $health <= 0){
 			$state = 'dead';
+			$emoji = $dead;
 		}
 		elsif($state eq 'normal'){
 			if($dirty >= 10 and $state ne 'dirty'){
@@ -155,6 +168,7 @@ sub Update {
 			elsif($hunger < 40 and $state ne 'hungry'){
 				$state = 'hungry';
 			}
+			$emoji = $normal;
 		}
 		elsif($state eq 'dirty' and $dirty < 10){
 			if(($happy >= 40 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
@@ -174,7 +188,7 @@ sub Update {
 			}
 		}
 		elsif($state eq 'tired' and $tired < 50){
-			if($dirty >= 50 and $state ne 'dirty'){
+			if($dirty >= 10 and $state ne 'dirty'){
 				$state = 'dirty';
 			}
 			elsif(($happy >= 40 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
@@ -191,7 +205,7 @@ sub Update {
 			}
 		}
 		elsif($state eq 'sad'){
-			if($dirty >= 50 and $state ne 'dirty'){
+			if($dirty >= 10 and $state ne 'dirty'){
 				$state = 'dirty';
 			}
 			elsif(($happy >= 90 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
@@ -208,7 +222,7 @@ sub Update {
 			}
 		}
 		elsif($state eq 'sick'){
-			if($dirty >= 50 and $state ne 'dirty'){
+			if($dirty >= 10 and $state ne 'dirty'){
 				$state = 'dirty';
 			}
 			elsif(($happy >= 40 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
@@ -225,7 +239,7 @@ sub Update {
 			}
 		}
 		elsif($state eq 'hungry'){
-			if($dirty >= 50 and $state ne 'dirty'){
+			if($dirty >= 10 and $state ne 'dirty'){
 				$state = 'dirty';
 			}
 			elsif(($happy >= 40 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
@@ -244,6 +258,7 @@ sub Update {
 	}
 	elsif($state ne 'dead' and $luz eq 'ACESA'){
             $state = $lastState;
+            $emoji = $emoji_aux;
 	}
 	elsif($state eq 'dead'){
 		$health = 0;
@@ -261,7 +276,7 @@ sub OnInit {
         my $text_tama = Wx::StaticText->new(
            $frame,             # parent window
            -1,                 # Let the system assign a window ID
-           "$normal",    # The literal text to display
+           "$emoji",    # The literal text to display
            [150, 150],           # [x, y] coordinates of the control
         );
         
@@ -558,12 +573,16 @@ sub OnInit {
 				$btnSleep = 'ACORDAR';
 				$lastState = $state;
 				$state = 'sleeping';
+				$emoji_aux = $emoji;
+				$emoji = $sleep;
 			}
 			else{
 				$luz = 'ACESA';
 				$btnSleep = 'DORMIR';
+				
 			}
 			Update();
+			$text_tama->SetLabel("$emoji");
 			$text_luz_value->SetLabel("$luz");
 			$dormir->SetLabel("$btnSleep");
 			$text_state_value->SetLabel("| $state |"); 
@@ -580,6 +599,7 @@ sub OnInit {
                sleep 2;
                UpdateTime();
                print "dirty: $dirty\n tired: $tired\n";
+               $text_tama->SetLabel("$emoji");
                $text_luz_value->SetLabel("$luz");
                $dormir->SetLabel("$btnSleep");
                $text_happy_value->SetLabel("| $happy |");
@@ -595,7 +615,7 @@ sub OnInit {
 	   while(1){
 	       my $beeper = Audio::Beep->new();
 	       my $music = "g' f bes' c8 f d4 c8 f d4 bes c g f2 g' f bes' c8 f d4 c8 f d4 bes c g f2 g' f bes' c8 f d4 c8 f d4 bes c g f2";
-	       $beeper->play( $music );
+	       #$beeper->play( $music );
 	   }
        	
        	
