@@ -71,9 +71,33 @@ $dead = "
  ~~  ~~  ~~  
  ";
 
+my $food :shared;
+$food = "
+         \\/ .--,   
+         //_..       
+   .----/---.          
+  /        __ \\      
+ \\       \\ __                                           
+   \\__.__ /            
+";
+
+my $sujo :shared;
+$sujo = "
+     (     )
+  (   )   (
+    )  _   )
+      (    \\_
+  _(_\\     \\)__
+ (____\\___))
+";
+
 my $emoji : shared;
 $emoji = $normal;
+
 my $emoji_aux : shared;
+
+my $emoji2 : shared;
+$emoji2 = "";
 
 sub Restart {
    $state = 'normal';
@@ -135,7 +159,7 @@ sub UpdateTime {
 	$happy = $happy - 1;
 	$hunger = $hunger - 1;
 	$health = $health - 1;
-	$tired = $tired - 2;
+	$tired = $tired - 5;
 	$dirty++;
 	if($tired <= 0){
            $state = $lastState;
@@ -143,9 +167,11 @@ sub UpdateTime {
            $btnSleep = 'DORMIR';
         }
    }
-   if ($state eq 'jogando') {
-	$happy = $happy + 1;
-	$hunger = $hunger - 4;
+   if ($state eq 'playing') {
+   	if($happy < 100){
+		$happy = $happy + 1;
+	}
+	$hunger = $hunger - 20;
 	$health = $health - 1;
 	$tired++;
 	$dirty++;
@@ -161,8 +187,9 @@ sub Update {
 			$emoji = $dead;
 		}
 		elsif($state eq 'normal'){
-			if($dirty >= 40 and $state ne 'dirty'){
+			if($dirty >= 10 and $state ne 'dirty'){
 				$state = 'dirty';
+				$emoji2 = $sujo;
 			}
 			elsif($tired >= 50 and $state ne 'tired'){
 				$state = 'tired';
@@ -173,19 +200,20 @@ sub Update {
 			elsif($health < 40 and $state ne 'sick'){ 
 				$state = 'sick';
 			}
-			elsif($hunger < 40 and $state ne 'hungry'){
+			elsif($hunger < 80 and $state ne 'hungry'){
 				$state = 'hungry';
+				$emoji2 = $food;
 			}
 			$emoji = $normal;
 		}
-		elsif($state eq 'dirty' and $dirty < 40){
+		elsif($state eq 'dirty' and $dirty <10){
 			if(($happy >= 40 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
 				$state = 'normal';
 			}
 			elsif($tired >= 50 and $state ne 'tired'){
 				$state = 'tired';
 			}
-			elsif($happy < 40 and $state != 'sad'){ 
+			elsif($happy < 40 and $state ne 'sad'){ 
 				$state = 'sad';
 			}
 			elsif($health < 40 and $state ne 'sick'){ 
@@ -193,11 +221,13 @@ sub Update {
 			}
 			elsif($hunger < 40 and $state ne 'hungry'){
 				$state = 'hungry';
+				$emoji2 = $food;
 			}
 		}
 		elsif($state eq 'tired' and $tired < 50){
 			if($dirty >= 10 and $state ne 'dirty'){
 				$state = 'dirty';
+				$emoji2 = $sujo;
 			}
 			elsif(($happy >= 40 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
 				$state = 'normal';
@@ -212,9 +242,10 @@ sub Update {
 				$state = 'hungry';
 			}
 		}
-		elsif($state eq 'sad'){
+		elsif($state eq 'sad' and $happy > 40){
 			if($dirty >= 10 and $state ne 'dirty'){
 				$state = 'dirty';
+				$emoji2 = $sujo;
 			}
 			elsif(($happy >= 90 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
 				$state = 'normal';
@@ -227,11 +258,13 @@ sub Update {
 			}
 			elsif($hunger < 40 and $state ne 'hungry'){
 				$state = 'hungry';
+				$emoji2 = $food;
 			}
 		}
-		elsif($state eq 'sick'){
+		elsif($state eq 'sick' and $health > 40){
 			if($dirty >= 10 and $state ne 'dirty'){
 				$state = 'dirty';
+				$emoji2 = $sujo;
 			}
 			elsif(($happy >= 40 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
 				$state = 'normal';
@@ -244,14 +277,17 @@ sub Update {
 			}
 			elsif($hunger < 40 and $state ne 'hungry'){
 				$state = 'hungry';
+				$emoji2 = $food;
 			}
 		}
-		elsif($state eq 'hungry' and $hunger > 40){
+		elsif($state eq 'hungry' and $hunger > 80){
 			if($dirty >= 10 and $state ne 'dirty'){
 				$state = 'dirty';
+				$emoji2 = $sujo;
 			}
 			elsif(($happy >= 40 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
 				$state = 'normal';
+				$emoji2 = "";
 			}
 			elsif($happy < 40 and $state ne 'sad'){ 
 				$state = 'sad';
@@ -261,6 +297,7 @@ sub Update {
 			}
 			elsif($health < 40 and $state ne 'sick'){ 
 				$state = 'sick';
+				$emoji2 = $food;
 			}
 		}
 	}
@@ -281,10 +318,22 @@ sub OnInit {
         $frame->SetMinSize([120,40]);
         my $sizer = Wx::BoxSizer->new(&Wx::wxVERTICAL);
         
+        my $self1 = shift;
+	my $frame1 = wxPerl::Frame->new($frame, 'QUIZ GAME');
+	$frame1->SetMinSize([120,40]);
+	my $sizer1 = Wx::BoxSizer->new(&Wx::wxVERTICAL);
+        
+        my $text_tama2 = Wx::StaticText->new(
+           $frame,             # parent window
+           -1,                 # Let the system assign a window ID
+           "$emoji2",    # The literal text to display
+           [250, 150],           # [x, y] coordinates of the control
+        );
+        
         my $text_tama = Wx::StaticText->new(
            $frame,             # parent window
            -1,                 # Let the system assign a window ID
-           "$emoji",    # The literal text to display
+           "$normal",    # The literal text to display
            [150, 150],           # [x, y] coordinates of the control
         );
         
@@ -409,38 +458,43 @@ sub OnInit {
        
        
        Wx::Event::EVT_BUTTON($jogar, -1, sub {
-                my $self1 = shift;
-		my $frame1 = wxPerl::Frame->new($frame, 'QUIZ GAME');
-		$frame1->SetMinSize([120,40]);
-		my $sizer1 = Wx::BoxSizer->new(&Wx::wxVERTICAL);
+                
 		$frame1->Show;
 		$lastState = $state;
-		$state = 'jogando';
+		$state = 'playing';
+		
+		
+		my $exitt = Wx::Button->new( $frame1,        # parent window
+                                  -1,             # ID
+                                  "SAIR",      # label
+                                  [150, 300],       # position
+                                  [-1, -1],       # default size
+                                  );
 		
 		my $op1 = Wx::Button->new( $frame1,        # parent window
                                   -1,             # ID
-                                  "6",      # label
+                                  "Chapecoense",      # label
                                   [100, 200],       # position
                                   [-1, -1],       # default size
                                   );
                                   
                 my $op2 = Wx::Button->new( $frame1,        # parent window
                                   -1,             # ID
-                                  "2",      # label
+                                  "Milan",      # label
                                   [100, 250],       # position
                                   [-1, -1],       # default size
                                   );
                                   
                 my $op3 = Wx::Button->new( $frame1,        # parent window
                                   -1,             # ID
-                                  "4",      # label
+                                  "PSG",      # label
                                   [200, 200],       # position
                                   [-1, -1],       # default size
                                   );
                                   
                 my $op4 = Wx::Button->new( $frame1,        # parent window
                                   -1,             # ID
-                                  "8",      # label
+                                  "Boca Jrs",      # label
                                   [200, 250],       # position
                                   [-1, -1],       # default size
                                   );
@@ -448,25 +502,39 @@ sub OnInit {
              my $text_q = Wx::StaticText->new(
              $frame1,             # parent window
              -1,                 # Let the system assign a window ID
-             "QUANTAS PATAS TEM UM CACHORRO?",    # The literal text to display
+             "QUAL TIME PERTENCE A FRANCA?",    # The literal text to display
              [100, 100],           # [x, y] coordinates of the control
              );
              
              Wx::Event::EVT_BUTTON($op3, -1, sub {
-                $text_q->SetLabel("QUANTAS PERNAS TEM UM SER HUMANO?");
-                Wx::Event::EVT_BUTTON($op1, -1, sub {
-				 $frame1->Destroy();
-		});
-			    
-		Wx::Event::EVT_BUTTON($op3, -1, sub {
-				$frame1->Destroy();
-		});
-			    
-		Wx::Event::EVT_BUTTON($op4, -1, sub {
-				$frame1->Destroy();
-		});
+             	if($state ne 'dead'){
+			$text_q->SetLabel("QUAL SELECÃO NUNCA GANHOU UM MUNDIAL?");
+			$op1->SetLabel("Brasil");
+			$op2->SetLabel("Holanda");
+			$op3->SetLabel("Uruguai");
+			$op4->SetLabel("Itália");
+			Wx::Event::EVT_BUTTON($op1, -1, sub {
+					 $frame1->Destroy();
+			});
+				    
+			Wx::Event::EVT_BUTTON($op3, -1, sub {
+					$frame1->Destroy();
+			});
+				    
+			Wx::Event::EVT_BUTTON($op4, -1, sub {
+					$frame1->Destroy();
+			});
+		}
+		else{
+			$frame1->Destroy();
+		}
                 Wx::Event::EVT_BUTTON($op2, -1, sub {
-			  $text_q->SetLabel("QUANTAS PATAS TEM UMA FORMIGA?");
+		  if($state ne 'dead'){
+			  $text_q->SetLabel("QUAL DOS TIMES ABAIXO NAO É TRICOLOR?");
+			  $op1->SetLabel("Criciuma");
+			  $op2->SetLabel("Bahia");
+			  $op3->SetLabel("Joinville");
+			  $op4->SetLabel("Grêmio");
 			  Wx::Event::EVT_BUTTON($op2, -1, sub {
 				 $frame1->Destroy();
 			  });
@@ -478,8 +546,17 @@ sub OnInit {
 			  Wx::Event::EVT_BUTTON($op4, -1, sub {
 				$frame1->Destroy();
 			  });
+		  }
+		  else{
+			$frame1->Destroy();
+		  }  
 			  Wx::Event::EVT_BUTTON($op1, -1, sub {
-				  $text_q->SetLabel("QUANTAS PATAS TEM UMA ARANHA?");
+			    if($state ne 'dead'){
+				  $text_q->SetLabel("QUANTOS MUNDIAIS TEM O CORINTHIANS?");
+				  $op1->SetLabel("3");
+				  $op2->SetLabel("2");
+				  $op3->SetLabel("Nenhum");
+				  $op4->SetLabel("1");
 				  Wx::Event::EVT_BUTTON($op1, -1, sub {
 					 $frame1->Destroy();
 				  });
@@ -491,8 +568,11 @@ sub OnInit {
 				  Wx::Event::EVT_BUTTON($op3, -1, sub {
 					$frame1->Destroy();
 				  });
+				  }
+			  else{
+				$frame1->Destroy();
+			  } 
 				  Wx::Event::EVT_BUTTON($op4, -1, sub {
-					$text_q->SetLabel("QUANTAS PATAS TEM UMA ARANHA?");
 						$op1->Hide;
 						$op2->Hide;
 						$op3->Hide;
@@ -535,7 +615,11 @@ sub OnInit {
 	    Wx::Event::EVT_BUTTON($op4, -1, sub {
 	    	$frame1->Destroy();
 	    });
-	$hunger = $hunger - 4;
+	    
+	    Wx::Event::EVT_BUTTON($exitt, -1, sub {
+                $state = $lastState;
+                $frame1->Destroy();
+	    });
       });
                 
       Wx::Event::EVT_BUTTON($curar, -1, sub {
@@ -564,6 +648,8 @@ sub OnInit {
 			lock$dirty;
 			$dirty = 0;
 			$health = $health + 5;
+			$emoji2 = "";
+			$text_tama2->SetLabel("$emoji2");
 			Update();
 			$text_state_value->SetLabel("| $state |"); 
                 }
@@ -613,7 +699,7 @@ sub OnInit {
                sleep 2;
                UpdateTime();
                print "dirty: $dirty\n tired: $tired\n";
-               #$text_tama->SetLabel("$emoji");
+               $text_tama2->SetLabel("$emoji2");
                $text_luz_value->SetLabel("$luz");
                $dormir->SetLabel("$btnSleep");
                $text_happy_value->SetLabel("| $happy |");
@@ -637,14 +723,19 @@ sub OnInit {
        	
        	my $tr_gif = threads->create(sub{
 		while(1){
-			$emoji = $normal;
-			$text_tama->SetLabel("$emoji");
+			if($state ne 'dead' and $state ne 'sleeping'){
+				$emoji = $normal;
+				$text_tama->SetLabel("$emoji");
 				sleep 1;
 				$emoji = $sleep;
 				$text_tama->SetLabel("$emoji");
-				sleep 1;
-       		
-			
+				
+			}
+			elsif($state eq 'dead'){
+				$text_tama->SetLabel("$emoji");
+				#$frame1->Destroy();
+			}
+			sleep 1;
 		}
        	
        		
