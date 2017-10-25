@@ -88,8 +88,8 @@ sub Restart {
 
 sub UpdateTime {
    if ($state eq 'normal') {
-	$happy = $happy - 1;
-	$hunger = $hunger - 1;
+	$happy = $happy - 2;
+	$hunger = $hunger - 2;
 	$health = $health - 1;
 	$tired++;
 	$dirty++;
@@ -143,6 +143,14 @@ sub UpdateTime {
            $btnSleep = 'DORMIR';
         }
    }
+   if ($state eq 'jogando') {
+	$happy = $happy + 1;
+	$hunger = $hunger - 4;
+	$health = $health - 1;
+	$tired++;
+	$dirty++;
+	
+   }
    Update();
 }
 
@@ -153,7 +161,7 @@ sub Update {
 			$emoji = $dead;
 		}
 		elsif($state eq 'normal'){
-			if($dirty >= 10 and $state ne 'dirty'){
+			if($dirty >= 40 and $state ne 'dirty'){
 				$state = 'dirty';
 			}
 			elsif($tired >= 50 and $state ne 'tired'){
@@ -170,7 +178,7 @@ sub Update {
 			}
 			$emoji = $normal;
 		}
-		elsif($state eq 'dirty' and $dirty < 10){
+		elsif($state eq 'dirty' and $dirty < 40){
 			if(($happy >= 40 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
 				$state = 'normal';
 			}
@@ -238,7 +246,7 @@ sub Update {
 				$state = 'hungry';
 			}
 		}
-		elsif($state eq 'hungry'){
+		elsif($state eq 'hungry' and $hunger > 40){
 			if($dirty >= 10 and $state ne 'dirty'){
 				$state = 'dirty';
 			}
@@ -401,11 +409,13 @@ sub OnInit {
        
        
        Wx::Event::EVT_BUTTON($jogar, -1, sub {
-                 my $self1 = shift;
+                my $self1 = shift;
 		my $frame1 = wxPerl::Frame->new($frame, 'QUIZ GAME');
 		$frame1->SetMinSize([120,40]);
 		my $sizer1 = Wx::BoxSizer->new(&Wx::wxVERTICAL);
 		$frame1->Show;
+		$lastState = $state;
+		$state = 'jogando';
 		
 		my $op1 = Wx::Button->new( $frame1,        # parent window
                                   -1,             # ID
@@ -414,21 +424,21 @@ sub OnInit {
                                   [-1, -1],       # default size
                                   );
                                   
-               my $op2 = Wx::Button->new( $frame1,        # parent window
+                my $op2 = Wx::Button->new( $frame1,        # parent window
                                   -1,             # ID
                                   "2",      # label
                                   [100, 250],       # position
                                   [-1, -1],       # default size
                                   );
                                   
-              my $op3 = Wx::Button->new( $frame1,        # parent window
+                my $op3 = Wx::Button->new( $frame1,        # parent window
                                   -1,             # ID
                                   "4",      # label
                                   [200, 200],       # position
                                   [-1, -1],       # default size
                                   );
                                   
-              my $op4 = Wx::Button->new( $frame1,        # parent window
+                my $op4 = Wx::Button->new( $frame1,        # parent window
                                   -1,             # ID
                                   "8",      # label
                                   [200, 250],       # position
@@ -489,7 +499,7 @@ sub OnInit {
 						$op4->Hide;
 						$text_q->Hide;
 						
-						$happy = 100;
+						$happy = $happy + 50;
 						
 						my $text_win = Wx::StaticText->new(
 						$frame1,
@@ -505,15 +515,14 @@ sub OnInit {
 								  [-1, -1],       # default size
 								  );
 						Wx::Event::EVT_BUTTON($exit_game, -1, sub {
+							$state = $lastState;
 							$frame1->Destroy();
 						}); 
 					
 				});
 			});
 		});
-		
-      
-		
+	    
             });
             Wx::Event::EVT_BUTTON($op2, -1, sub {
                  $frame1->Destroy();
@@ -526,6 +535,7 @@ sub OnInit {
 	    Wx::Event::EVT_BUTTON($op4, -1, sub {
 	    	$frame1->Destroy();
 	    });
+	$hunger = $hunger - 4;
       });
                 
       Wx::Event::EVT_BUTTON($curar, -1, sub {
@@ -542,14 +552,18 @@ sub OnInit {
 			lock$hunger;
 			$hunger = $hunger + 2;
 		}
+		elsif($hunger > 100 and $state ne  'dead'){
+			$health = 39;
+		}
 		Update();
                 $text_hunger_value->SetLabel("| $hunger |");
        });
                 
        Wx::Event::EVT_BUTTON($limpar, -1, sub {
-                if($state ne 'dead'){
+                if($state ne 'dead' and $state eq 'dirty'){
 			lock$dirty;
 			$dirty = 0;
+			$health = $health + 5;
 			Update();
 			$text_state_value->SetLabel("| $state |"); 
                 }
@@ -599,7 +613,7 @@ sub OnInit {
                sleep 2;
                UpdateTime();
                print "dirty: $dirty\n tired: $tired\n";
-               $text_tama->SetLabel("$emoji");
+               #$text_tama->SetLabel("$emoji");
                $text_luz_value->SetLabel("$luz");
                $dormir->SetLabel("$btnSleep");
                $text_happy_value->SetLabel("| $happy |");
@@ -615,10 +629,25 @@ sub OnInit {
 	   while(1){
 	       my $beeper = Audio::Beep->new();
 	       my $music = "g' f bes' c8 f d4 c8 f d4 bes c g f2 g' f bes' c8 f d4 c8 f d4 bes c g f2 g' f bes' c8 f d4 c8 f d4 bes c g f2";
-	       #$beeper->play( $music );
+	       $beeper->play( $music );
 	   }
        	
        	
+       	});
+       	
+       	my $tr_gif = threads->create(sub{
+		while(1){
+			$emoji = $normal;
+			$text_tama->SetLabel("$emoji");
+				sleep 1;
+				$emoji = $sleep;
+				$text_tama->SetLabel("$emoji");
+				sleep 1;
+       		
+			
+		}
+       	
+       		
        	});
              
        $frame->SetSizer($sizer);
