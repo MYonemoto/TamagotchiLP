@@ -171,7 +171,7 @@ sub UpdateTime {
    	if($happy < 100){
 		$happy = $happy + 1;
 	}
-	$hunger = $hunger - 20;
+	$hunger = $hunger - 3;
 	$health = $health - 1;
 	$tired++;
 	$dirty++;
@@ -194,7 +194,7 @@ sub Update {
 			elsif($tired >= 50 and $state ne 'tired'){
 				$state = 'tired';
 			}
-			elsif($happy < 40 and $state ne 'sad'){ 
+			elsif($happy < 60 and $state ne 'sad'){ 
 				$state = 'sad';	
 			}
 			elsif($health < 40 and $state ne 'sick'){ 
@@ -207,13 +207,13 @@ sub Update {
 			$emoji = $normal;
 		}
 		elsif($state eq 'dirty' and $dirty <10){
-			if(($happy >= 40 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
+			if(($happy >= 60 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
 				$state = 'normal';
 			}
 			elsif($tired >= 50 and $state ne 'tired'){
 				$state = 'tired';
 			}
-			elsif($happy < 40 and $state ne 'sad'){ 
+			elsif($happy < 60 and $state ne 'sad'){ 
 				$state = 'sad';
 			}
 			elsif($health < 40 and $state ne 'sick'){ 
@@ -229,10 +229,10 @@ sub Update {
 				$state = 'dirty';
 				$emoji2 = $sujo;
 			}
-			elsif(($happy >= 40 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
+			elsif(($happy >= 60 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
 				$state = 'normal';
 			}
-			elsif($happy < 40 and $state ne 'sad'){ 
+			elsif($happy < 60 and $state ne 'sad'){ 
 				$state = 'sad';
 			}
 			elsif($health < 40 and $state ne 'sick'){ 
@@ -242,12 +242,12 @@ sub Update {
 				$state = 'hungry';
 			}
 		}
-		elsif($state eq 'sad' and $happy > 40){
+		elsif($state eq 'sad' and $happy > 60){
 			if($dirty >= 10 and $state ne 'dirty'){
 				$state = 'dirty';
 				$emoji2 = $sujo;
 			}
-			elsif(($happy >= 90 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
+			elsif(($happy >= 60 and $health >= 40 and $hunger >= 40) and ($state ne 'normal')){
 				$state = 'normal';
 			}
 			elsif($tired >= 50 and $state ne 'tired'){
@@ -636,7 +636,7 @@ sub OnInit {
 			lock$hunger;
 			$hunger = $hunger + 2;
 		}
-		elsif($hunger > 100 and $state ne  'dead'){
+		elsif($hunger >= 100 and $state ne  'dead'){
 			$health = 39;
 		}
 		Update();
@@ -714,7 +714,7 @@ sub OnInit {
        my $tr_audio = threads->create(sub{
 	   while(1){
 	       my $beeper = Audio::Beep->new();
-	       my $music = "g' f bes' c8 f d4 c8 f d4 bes c g f2 g' f bes' c8 f d4 c8 f d4 bes c g f2 g' f bes' c8 f d4 c8 f d4 bes c g f2";
+	       my $music = "g f bes' c8 f d4 c8 f d4 bes c g f2 g' f bes' c8 f d4 c8 f d4 bes c g f2 g' f bes' c8 f d4 c8 f d4 bes c g f2";
 	       $beeper->play( $music );
 	   }
        	
